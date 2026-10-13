@@ -1,0 +1,243 @@
+{
+  "info": {
+    "name": "GourmetBite — Online Food Ordering API",
+    "description": "Comprehensive Postman Collection for Online Food Ordering System testing & viva presentation",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Check Health",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/health" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register Customer",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/auth/register" },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alice Smith\",\n  \"email\": \"alice@example.com\",\n  \"password\": \"Password123!\",\n  \"phone\": \"+1-555-0199\",\n  \"address\": \"123 Gourmet Lane\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login Customer",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/auth/login" },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"alice@example.com\",\n  \"password\": \"Password123!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login Admin",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/auth/login" },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@foodordering.com\",\n  \"password\": \"AdminPassword123!\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Food Items",
+      "item": [
+        {
+          "name": "Get All Foods (Paginated & Filtered)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/foods?page=0&size=10&available=true" }
+          }
+        },
+        {
+          "name": "Get Food by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/foods/{{foodId}}" }
+          }
+        },
+        {
+          "name": "Create Food Item (Admin)",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/foods" },
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Smoky Bacon Burger\",\n  \"categoryId\": \"<categoryId>\",\n  \"price\": 12.99,\n  \"description\": \"Angus beef patty with smoked bacon and cheddar\",\n  \"imageUrl\": \"https://images.unsplash.com/photo-1568901346375-23c9450c58cd\",\n  \"available\": true\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "Get All Categories",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/categories?activeOnly=true" }
+          }
+        },
+        {
+          "name": "Create Category (Admin)",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/categories" },
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Artisan Pizzas\",\n  \"description\": \"Fresh stone-baked Neapolitan sourdough pizzas\",\n  \"imageUrl\": \"https://images.unsplash.com/photo-1513104890138-7c749659a591\",\n  \"active\": true\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Shopping Cart",
+      "item": [
+        {
+          "name": "Get Cart",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/cart" },
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }]
+          }
+        },
+        {
+          "name": "Add Item to Cart",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/cart/add" },
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"foodItemId\": \"<foodItemId>\",\n  \"quantity\": 2\n}"
+            }
+          }
+        },
+        {
+          "name": "Clear Cart",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/cart/clear" },
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Place Order (Checkout)",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/orders" },
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deliveryAddress\": \"456 Elm Street, Apt 12\",\n  \"paymentMethod\": \"CASH_ON_DELIVERY\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get My Orders",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/orders" },
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }]
+          }
+        },
+        {
+          "name": "Update Order Status (Admin)",
+          "request": {
+            "method": "PUT",
+            "url": { "raw": "{{baseUrl}}/orders/<orderId>/status" },
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"CONFIRMED\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Dashboard",
+      "item": [
+        {
+          "name": "Get Dashboard Statistics",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/admin/dashboard" },
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }]
+          }
+        },
+        {
+          "name": "Get All Admin Orders",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/admin/orders?page=0&size=20" },
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }]
+          }
+        },
+        {
+          "name": "Get All Registered Users",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/admin/users" },
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Orders — GourmetBite Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body style="background: #f4efe6;">
+
+  <!-- Admin Header -->
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="/admin-dashboard.html" class="logo">
+        🛡️ <span>Gourmet<b>Bite Admin</b></span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="/admin-dashboard.html" class="nav-link">Dashboard</a></li>
+        <li><a href="/manage-food.html" class="nav-link">Foods</a></li>
+        <li><a href="/manage-categories.html" class="nav-link">Categories</a></li>
+        <li><a href="/manage-orders.html" class="nav-link active">Orders</a></li>
+        <li><a href="/manage-customers.html" class="nav-link">Customers</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="/index.html" class="btn btn-secondary btn-sm" target="_blank">Storefront ↗</a>
+        <button onclick="handleLogout()" class="btn btn-outline btn-sm">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="margin-top: 36px; margin-bottom: 80px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;">
+      <div>
+        <span style="color: var(--accent); font-weight: 700; text-transform: uppercase; font-size: 0.85rem;">Fulfillment & Operations</span>
+        <h1 style="font-size: 2.2rem; font-weight: 800;">Manage Customer Orders</h1>
+      </div>
+      <button onclick="loadOrders()" class="btn btn-secondary btn-sm">🔄 Refresh Orders</button>
+    </div>
+
+    <!-- Status filter -->
+    <div class="card-box" style="padding: 16px 20px; margin-bottom: 24px;">
+      <div style="display: flex; gap: 14px; align-items: center;">
+        <label class="form-label" style="margin-bottom: 0;">Filter By Status:</label>
+        <select id="status-filter" class="form-control" style="max-width: 240px;">
+          <option value="">All Statuses</option>
+          <option value="PLACED">PLACED</option>
+          <option value="CONFIRMED">CONFIRMED</option>
+          <option value="PREPARING">PREPARING</option>
+          <option value="OUT_FOR_DELIVERY">OUT_FOR_DELIVERY</option>
+          <option value="DELIVERED">DELIVERED</option>
+          <option value="CANCELLED">CANCELLED</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="card-box">
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer</th>
+              <th>Date</th>
+              <th>Items</th>
+              <th>Total</th>
+              <th>Payment</th>
+              <th>Current Status</th>
+              <th>Update Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="orders-tbody">
+            <tr>
+              <td colspan="9" style="text-align: center; padding: 40px; color: var(--text-muted);">Loading orders...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- View Details Modal -->
+  <div id="details-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+        <h3 id="modal-order-title" style="font-size: 1.3rem; font-weight: 800;">Order Details</h3>
+        <button onclick="closeDetailsModal()" style="background: none; border: none; font-size: 1.4rem; cursor: pointer;">✕</button>
+      </div>
+      <div id="modal-order-body">
+        <!-- populated via js -->
+      </div>
+      <div style="text-align: right; margin-top: 20px;">
+        <button onclick="closeDetailsModal()" class="btn btn-secondary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container footer-bottom">
+      &copy; 2026 GourmetBite Online Food Ordering System — Administration Portal.
+    </div>
+  </footer>
+
+  <script src="/js/api.js"></script>
+  <script>
+    if (!Storage.isAuthenticated() || !Storage.isAdmin()) {
+        window.location.href = '/admin-login.html';
+    }
+
+    let allOrders = [];
+
+    // Allowed transition map for admin controls
+    const nextTransitions = {
+        'PLACED': ['CONFIRMED', 'CANCELLED'],
+        'CONFIRMED': ['PREPARING', 'CANCELLED'],
+        'PREPARING': ['OUT_FOR_DELIVERY', 'CANCELLED'],
+        'OUT_FOR_DELIVERY': ['DELIVERED', 'CANCELLED'],
+        'DELIVERED': [],
+        'CANCELLED': []
+    };
+
+    async function loadOrders() {
+        const tbody = document.getElementById('orders-tbody');
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px; color: var(--text-muted);">Loading orders...</td></tr>';
+
+        try {
+            const res = await apiRequest('/admin/orders?page=0&size=100');
+            allOrders = res?.data?.content || [];
+            applyFilter();
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--danger); padding: 40px;">Failed to load orders: ${escapeHtml(e.message)}</td></tr>`;
+        }
+    }
+
+    function applyFilter() {
+        const filter = document.getElementById('status-filter').value;
+        const filtered = filter ? allOrders.filter(o => o.orderStatus === filter) : allOrders;
+        renderOrders(filtered);
+    }
+
+    function renderOrders(orders) {
+        const tbody = document.getElementById('orders-tbody');
+
+        if (orders.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px;">No matching orders found.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = orders.map(o => {
+            const dateStr = o.orderDate ? new Date(o.orderDate).toLocaleDateString('en-US', {
+                month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
+            }) : '—';
+
+            const itemsSummary = o.items.map(i => `${i.quantity}x ${escapeHtml(i.foodName)}`).join(', ');
+
+            // Compute allowed next transition buttons
+            const allowed = nextTransitions[o.orderStatus] || [];
+            let transitionHtml = '';
+
+            if (allowed.length === 0) {
+                transitionHtml = '<span style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">Terminal State</span>';
+            } else {
+                transitionHtml = `
+                  <select onchange="updateStatus('${o.id}', this.value)" class="form-control" style="padding: 4px 8px; font-size: 0.82rem;">
+                    <option value="">-- Change Status --</option>
+                    ${allowed.map(s => `<option value="${s}">Set to ${s}</option>`).join('')}
+                  </select>
+                `;
+            }
+
+            return `
+              <tr>
+                <td><b>#${escapeHtml(o.id.substring(0, 8))}</b></td>
+                <td><strong>${escapeHtml(o.customerName || 'Customer')}</strong></td>
+                <td style="color: var(--text-muted); font-size: 0.82rem;">${dateStr}</td>
+                <td style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHtml(itemsSummary)}">
+                  ${escapeHtml(itemsSummary)}
+                </td>
+                <td style="font-weight: 700;">${formatCurrency(o.totalAmount)}</td>
+                <td><span class="status-badge status-${o.paymentStatus}">${o.paymentStatus}</span></td>
+                <td><span class="status-badge status-${o.orderStatus}">${o.orderStatus}</span></td>
+                <td>${transitionHtml}</td>
+                <td>
+                  <button onclick='viewOrderDetails(${JSON.stringify(o).replace(/'/g, "&#39;")})' class="btn btn-secondary btn-sm">
+                    View
+                  </button>
+                </td>
+              </tr>
+            `;
+        }).join('');
+    }
+
+    async function updateStatus(orderId, newStatus) {
+        if (!newStatus) return;
+        if (!confirm(`Are you sure you want to change order status to ${newStatus}?`)) {
+            loadOrders();
+            return;
+        }
+
+        try {
+            await apiRequest(`/orders/${orderId}/status`, {
+                method: 'PUT',
+                body: JSON.stringify({ status: newStatus })
+            });
+            showToast(`Order updated to ${newStatus}!`, 'success');
+            loadOrders();
+        } catch (e) {
+            showToast(e.message, 'error');
+            loadOrders();
+        }
+    }
+
+    function viewOrderDetails(o) {
+        document.getElementById('modal-order-title').textContent = `Order #${o.id.substring(0, 8)}`;
+
+        const itemsHtml = o.items.map(i => `
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.92rem;">
+            <span>${i.quantity}× ${escapeHtml(i.foodName)} (@ ${formatCurrency(i.unitPrice)})</span>
+            <span style="font-weight: 700;">${formatCurrency(i.lineTotal)}</span>
+          </div>
+        `).join('');
+
+        document.getElementById('modal-order-body').innerHTML = `
+          <div style="background: var(--bg-secondary); padding: 14px; border-radius: var(--radius-sm); margin-bottom: 16px;">
+            <p><b>Customer:</b> ${escapeHtml(o.customerName)}</p>
+            <p><b>Delivery Address:</b> ${escapeHtml(o.deliveryAddress)}</p>
+            <p><b>Payment Method:</b> ${escapeHtml(o.paymentMethod)} (${o.paymentStatus})</p>
+            <p><b>Status:</b> <span class="status-badge status-${o.orderStatus}">${o.orderStatus}</span></p>
+          </div>
+
+          <h4 style="margin-bottom: 10px;">Ordered Items Snapshot</h4>
+          ${itemsHtml}
+
+          <div style="border-top: 2px dashed var(--border-color); margin-top: 14px; padding-top: 14px; display: flex; justify-content: space-between; font-weight: 800; font-size: 1.2rem;">
+            <span>Total Amount:</span>
+            <span style="color: var(--accent);">${formatCurrency(o.totalAmount)}</span>
+          </div>
+
+          <div style="margin-top: 18px; text-align: center;">
+            <a href="/order-tracking.html?id=${o.id}" class="btn btn-outline btn-sm" target="_blank">
+              Open Live Tracking View ↗
+            </a>
+          </div>
+        `;
+
+        document.getElementById('details-modal').classList.add('open');
+    }
+
+    function closeDetailsModal() {
+        document.getElementById('details-modal').classList.remove('open');
+    }
+
+    document.getElementById('status-filter').addEventListener('change', applyFilter);
+    document.addEventListener('DOMContentLoaded', loadOrders);
+  </script>
+</body>
+</html>

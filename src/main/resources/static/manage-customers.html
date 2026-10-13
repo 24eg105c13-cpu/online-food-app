@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Customers — GourmetBite Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body style="background: #f4efe6;">
+
+  <!-- Admin Header -->
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="/admin-dashboard.html" class="logo">
+        🛡️ <span>Gourmet<b>Bite Admin</b></span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="/admin-dashboard.html" class="nav-link">Dashboard</a></li>
+        <li><a href="/manage-food.html" class="nav-link">Foods</a></li>
+        <li><a href="/manage-categories.html" class="nav-link">Categories</a></li>
+        <li><a href="/manage-orders.html" class="nav-link">Orders</a></li>
+        <li><a href="/manage-customers.html" class="nav-link active">Customers</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="/index.html" class="btn btn-secondary btn-sm" target="_blank">Storefront ↗</a>
+        <button onclick="handleLogout()" class="btn btn-outline btn-sm">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="margin-top: 36px; margin-bottom: 80px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;">
+      <div>
+        <span style="color: var(--accent); font-weight: 700; text-transform: uppercase; font-size: 0.85rem;">Account Directory</span>
+        <h1 style="font-size: 2.2rem; font-weight: 800;">Registered Customers & Users</h1>
+      </div>
+    </div>
+
+    <!-- Search input -->
+    <div class="card-box" style="padding: 16px 20px; margin-bottom: 24px;">
+      <input type="text" id="customer-search" class="form-control" placeholder="Filter customers by name or email...">
+    </div>
+
+    <!-- Customers Table -->
+    <div class="card-box">
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Address</th>
+              <th>Role</th>
+              <th>Member Since</th>
+            </tr>
+          </thead>
+          <tbody id="customers-tbody">
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Loading user directory...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-bottom">
+      &copy; 2026 GourmetBite Online Food Ordering System — Administration Portal.
+    </div>
+  </footer>
+
+  <script src="/js/api.js"></script>
+  <script>
+    if (!Storage.isAuthenticated() || !Storage.isAdmin()) {
+        window.location.href = '/admin-login.html';
+    }
+
+    let allUsers = [];
+
+    async function loadCustomers() {
+        const tbody = document.getElementById('customers-tbody');
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Loading customers...</td></tr>';
+
+        try {
+            const res = await apiRequest('/admin/users');
+            allUsers = res?.data || [];
+            renderTable(allUsers);
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger); padding: 40px;">Failed to load user directory: ${escapeHtml(e.message)}</td></tr>`;
+        }
+    }
+
+    function renderTable(users) {
+        const tbody = document.getElementById('customers-tbody');
+
+        if (users.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;">No customers found.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = users.map(u => {
+            const dateStr = u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-US', {
+                month: 'short', day: 'numeric', year: 'numeric'
+            }) : '—';
+
+            return `
+              <tr>
+                <td><strong>${escapeHtml(u.name)}</strong></td>
+                <td>${escapeHtml(u.email)}</td>
+                <td style="color: var(--text-muted);">${escapeHtml(u.phone || '—')}</td>
+                <td style="max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-muted);" title="${escapeHtml(u.address || '')}">
+                  ${escapeHtml(u.address || '—')}
+                </td>
+                <td>
+                  <span class="status-badge ${u.role === 'ADMIN' ? 'status-OUT_FOR_DELIVERY' : 'status-CONFIRMED'}">
+                    ${u.role}
+                  </span>
+                </td>
+                <td style="color: var(--text-muted); font-size: 0.85rem;">${dateStr}</td>
+              </tr>
+            `;
+        }).join('');
+    }
+
+    document.getElementById('customer-search').addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        const filtered = allUsers.filter(u => 
+            u.name.toLowerCase().includes(query) || 
+            u.email.toLowerCase().includes(query)
+        );
+        renderTable(filtered);
+    });
+
+    document.addEventListener('DOMContentLoaded', loadCustomers);
+  </script>
+</body>
+</html>

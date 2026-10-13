@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Order Tracking — GourmetBite</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Site Header -->
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="/index.html" class="logo">
+        🍽️ <span>Gourmet<b>Bite</b></span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="/index.html" class="nav-link">Home</a></li>
+        <li><a href="/menu.html" class="nav-link">Menu</a></li>
+        <li><a href="/my-orders.html" class="nav-link">My Orders</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="/cart.html" class="cart-btn" aria-label="View Shopping Cart">
+          🛒
+          <span id="header-cart-badge" class="cart-badge" style="display: none;">0</span>
+        </a>
+        <div id="header-auth-actions"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="max-width: 840px; margin: 40px auto 80px;">
+    <a href="/my-orders.html" style="color: var(--text-muted); font-weight: 600; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 20px;">
+      ← Back to All Orders
+    </a>
+
+    <div class="card-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 18px; margin-bottom: 24px;">
+        <div>
+          <span style="color: var(--accent); font-weight: 700; text-transform: uppercase; font-size: 0.85rem;">Live Real-Time Status</span>
+          <h1 id="order-title" style="font-size: 1.8rem; font-weight: 800;">Order Tracking</h1>
+        </div>
+        <button onclick="loadTracking()" class="btn btn-secondary btn-sm" title="Refresh Status">🔄 Refresh Status</button>
+      </div>
+
+      <!-- Cancelled Banner (Hidden unless cancelled) -->
+      <div id="cancelled-banner" style="display: none; background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 24px; text-align: center; font-weight: 700;">
+        ⚠️ This order has been CANCELLED by the restaurant or administrator.
+      </div>
+
+      <!-- Progress Timeline -->
+      <div id="timeline-container" class="tracker-timeline">
+        <div class="tracker-step" id="step-PLACED">
+          <div class="step-bubble">1</div>
+          <div class="step-label">Placed</div>
+        </div>
+        <div class="tracker-step" id="step-CONFIRMED">
+          <div class="step-bubble">2</div>
+          <div class="step-label">Confirmed</div>
+        </div>
+        <div class="tracker-step" id="step-PREPARING">
+          <div class="step-bubble">3</div>
+          <div class="step-label">Preparing</div>
+        </div>
+        <div class="tracker-step" id="step-OUT_FOR_DELIVERY">
+          <div class="step-bubble">4</div>
+          <div class="step-label">On The Way</div>
+        </div>
+        <div class="tracker-step" id="step-DELIVERED">
+          <div class="step-bubble">5</div>
+          <div class="step-label">Delivered</div>
+        </div>
+      </div>
+
+      <!-- Estimated Status Box -->
+      <div id="status-desc-box" style="background: var(--bg-secondary); border-radius: var(--radius-sm); padding: 20px; text-align: center; margin-bottom: 28px;">
+        <h3 id="status-headline" style="font-size: 1.25rem; margin-bottom: 6px;">Receiving Order...</h3>
+        <p id="status-subtext" style="color: var(--text-muted); font-size: 0.92rem;">Our kitchen will begin preparation shortly.</p>
+      </div>
+
+      <!-- Order Details Summary -->
+      <div id="order-summary-details">
+        <!-- Loaded via JS -->
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-bottom">
+      &copy; 2026 GourmetBite Online Food Ordering System.
+    </div>
+  </footer>
+
+  <script src="/js/api.js"></script>
+  <script>
+    if (!Storage.isAuthenticated()) {
+        window.location.href = '/login.html';
+    }
+
+    const steps = ['PLACED', 'CONFIRMED', 'PREPARING', 'OUT_FOR_DELIVERY', 'DELIVERED'];
+
+    async function loadTracking() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('id');
+
+        if (!orderId) {
+            window.location.href = '/my-orders.html';
+            return;
+        }
+
+        try {
+            const res = await apiRequest(`/orders/${orderId}`);
+            const o = res?.data;
+
+            if (!o) return;
+
+            document.getElementById('order-title').textContent = `Order #${o.id.substring(0, 8)}`;
+
+            const cancelledBanner = document.getElementById('cancelled-banner');
+            const timelineContainer = document.getElementById('timeline-container');
+            const headline = document.getElementById('status-headline');
+            const subtext = document.getElementById('status-subtext');
+
+            if (o.orderStatus === 'CANCELLED') {
+                cancelledBanner.style.display = 'block';
+                timelineContainer.style.opacity = '0.3';
+                headline.textContent = 'Order Cancelled';
+                subtext.textContent = 'This order was cancelled and will not be delivered.';
+            } else {
+                cancelledBanner.style.display = 'none';
+                timelineContainer.style.opacity = '1';
+
+                const currentIndex = steps.indexOf(o.orderStatus);
+
+                steps.forEach((step, idx) => {
+                    const el = document.getElementById(`step-${step}`);
+                    if (!el) return;
+                    el.classList.remove('active', 'completed');
+                    if (idx < currentIndex) {
+                        el.classList.add('completed');
+                    } else if (idx === currentIndex) {
+                        el.classList.add('active');
+                    }
+                });
+
+                // Status messages
+                switch (o.orderStatus) {
+                    case 'PLACED':
+                        headline.textContent = 'Order Placed with Restaurant';
+                        subtext.textContent = 'We have sent your order to the kitchen for confirmation.';
+                        break;
+                    case 'CONFIRMED':
+                        headline.textContent = 'Order Confirmed by Chef';
+                        subtext.textContent = 'The restaurant has confirmed your order and is queuing the ingredients.';
+                        break;
+                    case 'PREPARING':
+                        headline.textContent = 'Cooking & Packaging in Progress 🔥';
+                        subtext.textContent = 'Fresh dishes are currently being prepared with care in the kitchen.';
+                        break;
+                    case 'OUT_FOR_DELIVERY':
+                        headline.textContent = 'Delivery Rider is On The Way 🛵';
+                        subtext.textContent = 'Your insulated thermal package is en route to your address.';
+                        break;
+                    case 'DELIVERED':
+                        headline.textContent = 'Order Delivered! Bon Appétit 🎉';
+                        subtext.textContent = 'Payment collected in cash. Thank you for ordering with GourmetBite!';
+                        break;
+                }
+            }
+
+            // Summary
+            const itemsHtml = o.items.map(i => `
+              <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.92rem;">
+                <span>${i.quantity}× ${escapeHtml(i.foodName)}</span>
+                <span style="font-weight: 700;">${formatCurrency(i.lineTotal)}</span>
+              </div>
+            `).join('');
+
+            document.getElementById('order-summary-details').innerHTML = `
+              <h3 style="font-size: 1.15rem; margin-bottom: 12px;">Order Summary</h3>
+              ${itemsHtml}
+              <div style="border-top: 1px solid var(--border-color); margin-top: 12px; padding-top: 12px; display: flex; justify-content: space-between; font-weight: 800; font-size: 1.15rem; margin-bottom: 16px;">
+                <span>Total Amount</span>
+                <span style="color: var(--accent);">${formatCurrency(o.totalAmount)}</span>
+              </div>
+              <div style="background: #fff; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 14px; font-size: 0.9rem;">
+                <p><b>Delivery Destination:</b> ${escapeHtml(o.deliveryAddress)}</p>
+                <p><b>Payment:</b> Cash on Delivery (${o.paymentStatus})</p>
+              </div>
+            `;
+
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadTracking);
+  </script>
+</body>
+</html>

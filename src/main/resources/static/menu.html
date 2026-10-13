@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Food Menu — GourmetBite</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Site Header -->
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="/index.html" class="logo">
+        🍽️ <span>Gourmet<b>Bite</b></span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="/index.html" class="nav-link">Home</a></li>
+        <li><a href="/menu.html" class="nav-link active">Menu</a></li>
+        <li><a href="/my-orders.html" class="nav-link">My Orders</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="/cart.html" class="cart-btn" aria-label="View Shopping Cart">
+          🛒
+          <span id="header-cart-badge" class="cart-badge" style="display: none;">0</span>
+        </a>
+        <div id="header-auth-actions"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="margin-top: 36px; margin-bottom: 80px;">
+    <!-- Page Header -->
+    <div style="margin-bottom: 24px;">
+      <span style="color: var(--accent); font-weight: 700; text-transform: uppercase; font-size: 0.85rem;">Discover Flavors</span>
+      <h1 style="font-size: 2.3rem; font-weight: 800;">Our Complete Delicious Menu</h1>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="card-box" style="padding: 18px 24px; margin-bottom: 24px;">
+      <div style="display: grid; grid-template-columns: 2fr 1.2fr 1fr auto; gap: 16px; align-items: center;">
+        <div>
+          <label class="form-label" style="margin-bottom: 4px;">Search Dishes</label>
+          <input type="text" id="menu-search" class="form-control" placeholder="Search by name...">
+        </div>
+
+        <div>
+          <label class="form-label" style="margin-bottom: 4px;">Category</label>
+          <select id="category-select" class="form-control">
+            <option value="">All Categories</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="form-label" style="margin-bottom: 4px;">Sort By</label>
+          <select id="sort-select" class="form-control">
+            <option value="name:asc">Name (A-Z)</option>
+            <option value="price:asc">Price: Low to High</option>
+            <option value="price:desc">Price: High to Low</option>
+          </select>
+        </div>
+
+        <div style="padding-top: 24px;">
+          <button id="reset-filters-btn" class="btn btn-secondary">Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Food Grid -->
+    <div id="menu-grid" class="food-grid">
+      <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
+        Loading dishes...
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div id="pagination" style="display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 30px;">
+      <button id="prev-page-btn" class="btn btn-secondary btn-sm" disabled>« Previous</button>
+      <span id="page-indicator" style="font-size: 0.92rem; font-weight: 600; color: var(--text-muted);">Page 1 of 1</span>
+      <button id="next-page-btn" class="btn btn-secondary btn-sm" disabled>Next »</button>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-bottom">
+      &copy; 2026 GourmetBite Online Food Ordering System.
+    </div>
+  </footer>
+
+  <script src="/js/api.js"></script>
+  <script>
+    let currentPage = 0;
+    const pageSize = 12;
+    let totalPages = 1;
+
+    async function loadCategories() {
+        const select = document.getElementById('category-select');
+        try {
+            const res = await apiRequest('/categories?activeOnly=true');
+            if (res.success && res.data) {
+                res.data.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = c.name;
+                    select.appendChild(opt);
+                });
+            }
+        } catch (e) {
+            console.error('Error fetching categories', e);
+        }
+    }
+
+    async function fetchMenu() {
+        const grid = document.getElementById('menu-grid');
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">Loading dishes...</div>';
+
+        const search = document.getElementById('menu-search').value.trim();
+        const categoryId = document.getElementById('category-select').value;
+        const sortVal = document.getElementById('sort-select').value;
+        const [sortBy, direction] = sortVal.split(':');
+
+        let url = `/foods?available=true&page=${currentPage}&size=${pageSize}&sortBy=${sortBy}&direction=${direction}`;
+        if (search) url += `&search=${encodeURIComponent(search)}`;
+        if (categoryId) url += `&categoryId=${encodeURIComponent(categoryId)}`;
+
+        try {
+            const res = await apiRequest(url);
+            const data = res?.data;
+            const items = data?.content || [];
+            totalPages = data?.totalPages || 1;
+
+            if (items.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 60px;">
+                        <span style="font-size: 2.5rem;">🍽️</span>
+                        <h3 style="margin-top: 10px;">No matching items found</h3>
+                        <p style="color: var(--text-muted);">Try adjusting your search or category filter.</p>
+                    </div>
+                `;
+            } else {
+                grid.innerHTML = '';
+                items.forEach(food => {
+                    const card = document.createElement('div');
+                    card.className = 'food-card';
+                    card.innerHTML = `
+                        <div class="food-img-container">
+                            <img src="${escapeHtml(food.imageUrl || '')}" alt="${escapeHtml(food.name)}" onerror="handleImageError(this)">
+                            <span class="food-badge ${food.available ? 'available' : 'unavailable'}">
+                                ${food.available ? '● Available' : '● Sold Out'}
+                            </span>
+                        </div>
+                        <div class="food-card-body">
+                            <span class="food-category-tag">${escapeHtml(food.categoryName || 'General')}</span>
+                            <h3 class="food-title">${escapeHtml(food.name)}</h3>
+                            <p class="food-desc">${escapeHtml(food.description || '')}</p>
+                            <div class="food-card-footer">
+                                <span class="food-price">${formatCurrency(food.price)}</span>
+                                <div style="display: flex; gap: 8px;">
+                                    <a href="/food-details.html?id=${food.id}" class="btn btn-secondary btn-sm">Details</a>
+                                    <button onclick="addToCart('${food.id}')" class="btn btn-primary btn-sm" ${!food.available ? 'disabled' : ''}>
+                                        + Add
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+
+            // Update pagination
+            document.getElementById('page-indicator').textContent = `Page ${currentPage + 1} of ${Math.max(1, totalPages)}`;
+            document.getElementById('prev-page-btn').disabled = currentPage <= 0;
+            document.getElementById('next-page-btn').disabled = currentPage >= totalPages - 1;
+        } catch (e) {
+            grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--danger);">Failed to load menu: ${escapeHtml(e.message)}</div>`;
+        }
+    }
+
+    async function addToCart(foodId) {
+        if (!Storage.isAuthenticated()) {
+            showToast('Please log in to add items to your cart.', 'info');
+            setTimeout(() => window.location.href = '/login.html', 1000);
+            return;
+        }
+
+        if (Storage.isAdmin()) {
+            showToast('Administrators cannot place customer orders.', 'error');
+            return;
+        }
+
+        try {
+            await apiRequest('/cart/add', {
+                method: 'POST',
+                body: JSON.stringify({ foodItemId: foodId, quantity: 1 })
+            });
+            showToast('Added to cart!', 'success');
+            syncHeader();
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    }
+
+    // Debounced search
+    let searchTimeout;
+    document.getElementById('menu-search').addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            currentPage = 0;
+            fetchMenu();
+        }, 350);
+    });
+
+    document.getElementById('category-select').addEventListener('change', () => {
+        currentPage = 0;
+        fetchMenu();
+    });
+
+    document.getElementById('sort-select').addEventListener('change', () => {
+        currentPage = 0;
+        fetchMenu();
+    });
+
+    document.getElementById('reset-filters-btn').addEventListener('click', () => {
+        document.getElementById('menu-search').value = '';
+        document.getElementById('category-select').value = '';
+        document.getElementById('sort-select').value = 'name:asc';
+        currentPage = 0;
+        fetchMenu();
+    });
+
+    document.getElementById('prev-page-btn').addEventListener('click', () => {
+        if (currentPage > 0) {
+            currentPage--;
+            fetchMenu();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    });
+
+    document.getElementById('next-page-btn').addEventListener('click', () => {
+        if (currentPage < totalPages - 1) {
+            currentPage++;
+            fetchMenu();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        await loadCategories();
+        // Check if category is passed in URL query param
+        const urlParams = new URLSearchParams(window.location.search);
+        const catParam = urlParams.get('category');
+        if (catParam) {
+            document.getElementById('category-select').value = catParam;
+        }
+        fetchMenu();
+    });
+  </script>
+</body>
+</html>

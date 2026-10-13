@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Confirmed — GourmetBite</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Site Header -->
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="/index.html" class="logo">
+        🍽️ <span>Gourmet<b>Bite</b></span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="/index.html" class="nav-link">Home</a></li>
+        <li><a href="/menu.html" class="nav-link">Menu</a></li>
+        <li><a href="/my-orders.html" class="nav-link">My Orders</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="/cart.html" class="cart-btn" aria-label="View Shopping Cart">
+          🛒
+          <span id="header-cart-badge" class="cart-badge" style="display: none;">0</span>
+        </a>
+        <div id="header-auth-actions"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="max-width: 680px; margin: 40px auto 80px;">
+    <div id="confirmation-box" class="card-box" style="text-align: center; padding: 40px;">
+      <div style="width: 72px; height: 72px; background: var(--success-bg); color: var(--success); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 16px;">
+        ✓
+      </div>
+      <h1 style="font-size: 2.1rem; font-weight: 800; margin-bottom: 8px;">Order Placed Successfully!</h1>
+      <p style="color: var(--text-muted); font-size: 1rem; margin-bottom: 24px;">Thank you for ordering with GourmetBite. The kitchen is preparing your dishes.</p>
+
+      <div id="order-details-container" style="text-align: left; background: var(--bg-secondary); border-radius: var(--radius-sm); padding: 20px; margin-bottom: 24px;">
+        Loading order details...
+      </div>
+
+      <div style="display: flex; gap: 14px; justify-content: center;">
+        <a id="track-btn" href="#" class="btn btn-primary btn-lg">Track Live Order ➔</a>
+        <a href="/my-orders.html" class="btn btn-secondary btn-lg">My Orders</a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-bottom">
+      &copy; 2026 GourmetBite Online Food Ordering System.
+    </div>
+  </footer>
+
+  <script src="/js/api.js"></script>
+  <script>
+    async function loadConfirmation() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('id');
+        const container = document.getElementById('order-details-container');
+        const trackBtn = document.getElementById('track-btn');
+
+        if (!orderId) {
+            window.location.href = '/my-orders.html';
+            return;
+        }
+
+        trackBtn.href = `/order-tracking.html?id=${orderId}`;
+
+        try {
+            const res = await apiRequest(`/orders/${orderId}`);
+            const o = res?.data;
+
+            if (!o) {
+                container.innerHTML = 'Order not found.';
+                return;
+            }
+
+            const itemsList = o.items.map(i => `
+              <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.92rem;">
+                <span>${i.quantity}× ${escapeHtml(i.foodName)}</span>
+                <span style="font-weight: 700;">${formatCurrency(i.lineTotal)}</span>
+              </div>
+            `).join('');
+
+            container.innerHTML = `
+              <div style="display: flex; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                <span style="font-size: 0.88rem; color: var(--text-muted);">Order ID: <b>#${escapeHtml(o.id.substring(0, 8))}</b></span>
+                <span class="status-badge status-${o.orderStatus}">${o.orderStatus}</span>
+              </div>
+
+              <div style="margin-bottom: 14px;">
+                <h4 style="font-size: 0.95rem; margin-bottom: 8px;">Items Ordered</h4>
+                ${itemsList}
+              </div>
+
+              <div style="border-top: 1px solid var(--border-color); padding-top: 10px; display: flex; justify-content: space-between; font-weight: 800; font-size: 1.15rem; margin-bottom: 14px;">
+                <span>Total Amount:</span>
+                <span style="color: var(--accent);">${formatCurrency(o.totalAmount)}</span>
+              </div>
+
+              <div style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5;">
+                <p><b>Payment Method:</b> Cash on Delivery (${o.paymentStatus})</p>
+                <p><b>Delivery Address:</b> ${escapeHtml(o.deliveryAddress)}</p>
+              </div>
+            `;
+        } catch (e) {
+            container.innerHTML = `<span style="color:var(--danger);">Error loading order details: ${escapeHtml(e.message)}</span>`;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadConfirmation);
+  </script>
+</body>
+</html>

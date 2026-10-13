@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Portal Login — GourmetBite</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body style="background: #f0ebe1;">
+
+  <!-- Site Header -->
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="/index.html" class="logo">
+        🛡️ <span>Gourmet<b>Bite Admin</b></span>
+      </a>
+      <div class="nav-actions">
+        <a href="/index.html" class="btn btn-secondary btn-sm">← Back to Storefront</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="max-width: 440px; margin: 60px auto 100px;">
+    <div class="card-box" style="border-top: 4px solid var(--accent);">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <span style="font-size: 2.5rem;">🔐</span>
+        <h2 style="font-size: 1.7rem; font-weight: 800; margin-top: 6px;">Staff & Admin Portal</h2>
+        <p style="color: var(--text-muted); font-size: 0.88rem;">Restricted access for restaurant operations</p>
+      </div>
+
+      <div id="alert-box" style="display: none; padding: 12px; border-radius: var(--radius-sm); margin-bottom: 18px; font-size: 0.9rem;"></div>
+
+      <form id="admin-login-form">
+        <div class="form-group">
+          <label class="form-label" for="admin-email">Administrator Email</label>
+          <input type="email" id="admin-email" class="form-control" placeholder="admin@foodordering.com" required autocomplete="email">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="admin-password">Administrator Password</label>
+          <input type="password" id="admin-password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+
+        <button type="submit" id="submit-btn" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 10px;">
+          Access Dashboard
+        </button>
+      </form>
+
+      <div style="background: var(--bg-secondary); border-radius: var(--radius-sm); padding: 14px; margin-top: 24px; font-size: 0.82rem; color: var(--text-muted); line-height: 1.5;">
+        <b>💡 System Setup Tip:</b><br>
+        Admin credentials can be bootstrapped at startup via <code>ADMIN_EMAIL</code> and <code>ADMIN_PASSWORD</code> environment variables.
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-bottom">
+      &copy; 2026 GourmetBite Online Food Ordering System.
+    </div>
+  </footer>
+
+  <script src="/js/api.js"></script>
+  <script>
+    if (Storage.isAuthenticated() && Storage.isAdmin()) {
+        window.location.href = '/admin-dashboard.html';
+    }
+
+    const form = document.getElementById('admin-login-form');
+    const alertBox = document.getElementById('alert-box');
+    const submitBtn = document.getElementById('submit-btn');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        alertBox.style.display = 'none';
+
+        const email = document.getElementById('admin-email').value.trim();
+        const password = document.getElementById('admin-password').value;
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Verifying credentials...';
+
+        try {
+            const res = await apiRequest('/auth/login', {
+                method: 'POST',
+                body: JSON.stringify({ email, password })
+            });
+
+            if (res.success && res.data) {
+                if (res.data.role !== 'ADMIN') {
+                    throw new Error('Access denied: This account does not possess administrator privileges.');
+                }
+
+                Storage.setAuth(res.data.token, res.data);
+                showToast('Welcome, Administrator ' + res.data.name, 'success');
+                setTimeout(() => {
+                    window.location.href = '/admin-dashboard.html';
+                }, 800);
+            }
+        } catch (err) {
+            alertBox.style.display = 'block';
+            alertBox.style.backgroundColor = 'var(--danger-bg)';
+            alertBox.style.color = 'var(--danger)';
+            alertBox.style.border = '1px solid var(--danger)';
+            alertBox.textContent = err.message || 'Login failed. Invalid credentials.';
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Access Dashboard';
+        }
+    });
+  </script>
+</body>
+</html>

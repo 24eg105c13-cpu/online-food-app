@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Viva Presentation — Online Food Ordering System</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body {
+      background: #1e242b;
+      color: #f7f9fa;
+      font-family: var(--font-family);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .slide-viewport {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+      position: relative;
+    }
+    .slide-card {
+      background: #ffffff;
+      color: #1e242b;
+      width: 100%;
+      max-width: 1050px;
+      min-height: 560px;
+      border-radius: var(--radius-lg);
+      padding: 48px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      animation: fadeIn 0.3s ease;
+    }
+    .slide-card.active {
+      display: flex;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .slide-header {
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .slide-category {
+      color: var(--accent);
+      font-weight: 800;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+    }
+    .slide-title {
+      font-size: 2.1rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-top: 4px;
+    }
+    .slide-body {
+      flex: 1;
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: #2d3748;
+    }
+    .slide-footer-bar {
+      background: #14181c;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid #2d343c;
+    }
+    .slide-nav-btns {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .spec-box {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-sm);
+      padding: 18px;
+      border-left: 4px solid var(--accent);
+    }
+    .spec-box h4 {
+      margin-bottom: 8px;
+      color: var(--text-main);
+      font-size: 1.05rem;
+    }
+    .spec-box p, .spec-box ul {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      margin: 0;
+      padding-left: 18px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Slide Viewport -->
+  <div class="slide-viewport">
+
+    <!-- Slide 1: Title -->
+    <div class="slide-card active" id="slide-1">
+      <div class="slide-header">
+        <div>
+          <span class="slide-category">Final Year Capstone Project Defense</span>
+          <h1 class="slide-title">🍽️ Online Food Ordering System (GourmetBite)</h1>
+        </div>
+        <span class="status-badge status-CONFIRMED">Viva Ready</span>
+      </div>
+      <div class="slide-body" style="display: flex; flex-direction: column; justify-content: center; text-align: center;">
+        <h2 style="font-size: 1.6rem; color: var(--accent); margin-bottom: 16px;">
+          Full-Stack Web Application Architecture & Implementation
+        </h2>
+        <p style="font-size: 1.15rem; max-width: 780px; margin: 0 auto 30px; color: var(--text-muted);">
+          A secure, scalable, and responsive food ordering and restaurant fulfillment platform built with 
+          <b>Spring Boot 4 / Java 17</b>, <b>MongoDB NoSQL</b>, <b>Spring Security (JWT)</b>, and <b>HTML5/Vanilla JS</b>.
+        </p>
+        <div style="display: flex; justify-content: center; gap: 20px;">
+          <div class="spec-box" style="text-align: left; min-width: 280px;">
+            <h4>Domain</h4>
+            <p>E-Commerce / Enterprise Food Tech</p>
+          </div>
+          <div class="spec-box" style="text-align: left; min-width: 280px;">
+            <h4>Architecture</h4>
+            <p>Layered RESTful MVC & Stateless Security</p>
+          </div>
+        </div>
+      </div>
+      <div style="text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+        Press <b>Next (➔)</b> or use keyboard arrow keys to navigate slides.
+      </div>
+    </div>
+
+    <!-- Slide 2: Problem Statement -->
+    <div class="slide-card" id="slide-2">
+      <div class="slide-header">
+        <div>
+          <span class="slide-category">Motivation & Objectives</span>
+          <h2 class="slide-title">Problem Statement & Solution</h2>
+        </div>
+      </div>
+      <div class="slide-body grid-2">
+        <div class="spec-box" style="border-left-color: var(--danger);">
+          <h3 style="color: var(--danger); margin-bottom: 12px;">Existing Manual Systems</h3>
+          <ul>
+            <li>Manual phone orders prone to communication errors and lost orders.</li>
+            <li>Inaccurate total calculation and lack of itemized price tracking.</li>
+            <li>No real-time transparency for customer order tracking.</li>
+            <li>Cumbersome inventory and menu management for restaurant staff.</li>
+            <li>Lack of operational metrics and sales reporting.</li>
+          </ul>
+        </div>
+        <div class="spec-box" style="border-left-color: var(--success);">
+          <h3 style="color: var(--success); margin-bottom: 12px;">Proposed GourmetBite Solution</h3>
+          <ul>
+            <li>Automated, self-service food ordering available 24/7 on any device.</li>
+            <li>Strict server-authoritative pricing — client cannot tamper with totals.</li>
+            <li>Live 5-step visual tracking timeline from placement to delivery.</li>
+            <li>Administrator dashboard with real-time gross revenue & status distribution.</li>
+            <li>Full catalog CRUD with instant availability toggles and price controls.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 3: Tech Stack -->
+    <div class="slide-card" id="slide-3">
+      <div class="slide-header">
+        <div>
+          <span class="slide-category">System Engineering</span>
+          <h2 class="slide-title">Technology Stack & Architectural Rationale</h2>
+        </div>
+      </div>
+      <div class="slide-body grid-2">
+        <div class="spec-box">
+          <h4>Backend: Spring Boot & Java 17 LTS</h4>
+          <ul>
+            <li><b>Spring Web:</b> High-throughput RESTful controllers with JSON mapping.</li>
+            <li><b>Spring Security & JJWT:</b> Stateless HMAC-SHA256 authentication.</li>
+            <li><b>Jakarta Validation:</b> Declarative input validation annotations.</li>
+            <li><b>GlobalExceptionHandler:</b> Sanitized error responses without credential leaks.</li>
+          </ul>
+        </div>
+        <div class="spec-box">
+          <h4>Database: MongoDB NoSQL</h4>
+          <ul>
+            <li><b>Document Oriented:</b> Dynamic attributes, allergen tags, and dietary labels.</li>
+            <li><b>Atomic Snapshots:</b> Cart and Order items stored directly as embedded sub-documents without complex relational JOIN bottlenecks.</li>
+            <li><b>Indexing:</b> Unique indexes on user email and category names for high performance.</li>
+          </ul>
+        </div>
+        <div class="spec-box">
+          <h4>Frontend: HTML5, CSS3 & Vanilla JavaScript</h4>
+          <ul>
+            <li><b>Zero External Frameworks:</b> Fast load times, lightweight and accessible.</li>
+            <li><b>Native Fetch API:</b> Reusable client handling JWT headers and 401 redirects.</li>
+            <li><b>Responsive Layout:</b> Grid and Flexbox layouts optimized for mobile and desktop.</li>
+          </ul>
+        </div>
+        <div class="spec-box">
+          <h4>Quality & Testing: JUnit 5 & Mockito</h4>
+          <ul>
+            <li><b>36 Automated Tests:</b> 100% passing across unit and controller layers.</li>
+            <li><b>MockMvc:</b> Verifies REST contract and validation errors in isolation.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 4: Database Schema -->
+    <div class="slide-card" id="slide-4">
+      <div class="slide-header">
+        <div>
+          <span class="slide-category">Data Modeling</span>
+          <h2 class="slide-title">MongoDB Collections & Schema Design</h2>
+        </div>
+      </div>
+      <div class="slide-body grid-2">
+        <div class="spec-box">
+          <h4>Users Collection (<code>users</code>)</h4>
+          <p>Fields: <code>id</code>, <code>name</code>, <code>email (unique)</code>, <code>passwordHash</code>, <code>phone</code>, <code>address</code>, <code>role (CUSTOMER, ADMIN)</code>, <code>createdAt</code>.</p>
+          <h4 style="margin-top: 14px;">Food Items Collection (<code>food_items</code>)</h4>
+          <p>Fields: <code>id</code>, <code>name</code>, <code>description</code>, <code>categoryId</code>, <code>price (BigDecimal)</code>, <code>imageUrl</code>, <code>available (boolean)</code>.</p>
+          <h4 style="margin-top: 14px;">Categories Collection (<code>categories</code>)</h4>
+          <p>Fields: <code>id</code>, <code>name (unique)</code>, <code>description</code>, <code>imageUrl</code>, <code>active</code>.</p>
+        </div>
+        <div class="spec-box">
+          <h4>Carts Collection (<code>carts</code>)</h4>
+          <p>Fields: <code>id</code>, <code>customerId (unique)</code>, <code>items: [{foodItemId, quantity}]</code>, <code>updatedAt</code>.</p>
+          <h4 style="margin-top: 14px;">Orders Collection (<code>orders</code>)</h4>
+          <p>Fields: <code>id</code>, <code>customerId</code>, <code>customerName</code>, <code>items: [{foodItemId, foodName, unitPrice, quantity, lineTotal}]</code>, <code>totalAmount</code>, <code>deliveryAddress</code>, <code>paymentMethod</code>, <code>paymentStatus</code>, <code>orderStatus</code>, <code>orderDate</code>.</p>
+          <p style="margin-top: 8px; color: var(--accent); font-weight: 700;">★ Note: Order items store immutable price snapshots to preserve historical accounting.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 5: Order State Machine -->
+    <div class="slide-card" id="slide-5">
+      <div class="slide-header">
+        <div>
+          <span class="slide-category">Business Logic</span>
+          <h2 class="slide-title">Order Fulfillment State Machine</h2>
+        </div>
+      </div>
+      <div class="slide-body">
+        <div class="spec-box" style="margin-bottom: 20px;">
+          <h4>Valid Order Lifecycle Transitions</h4>
+          <p style="font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-top: 8px;">
+            PLACED ➔ CONFIRMED ➔ PREPARING ➔ OUT_FOR_DELIVERY ➔ DELIVERED
+          </p>
+          <p style="margin-top: 6px;">Any intermediate stage can transition to <b>CANCELLED</b>. Terminal states (<b>DELIVERED</b> and <b>CANCELLED</b>) cannot be modified.</p>
+        </div>
+        <div class="grid-2">
+          <div class="spec-box">
+            <h4>Cash on Delivery (COD) Automation</h4>
+            <p>When an order is created, <code>paymentStatus = PENDING</code>. Upon reaching the <code>DELIVERED</code> milestone by the administrator, the system automatically advances payment status to <code>PAID</code>.</p>
+          </div>
+          <div class="spec-box">
+            <h4>Cart Auto-Clear Guarantee</h4>
+            <p>The user's shopping cart is atomically emptied only after the order document is successfully committed and validated.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 6: Security Architecture -->
+    <div class="slide-card" id="slide-6">
+      <div class="slide-header">
+        <div>
+          <span class="slide-category">Security Implementation</span>
+          <h2 class="slide-title">Stateless Authentication & Role Isolation</h2>
+        </div>
+      </div>
+      <div class="slide-body grid-2">
+        <div class="spec-box">
+          <h4>Stateless JWT Flow</h4>
+          <ul>
+            <li>User logs in via <code>POST /api/auth/login</code>.</li>
+            <li>Server verifies credentials using <code>BCryptPasswordEncoder</code>.</li>
+            <li>Issues HMAC-SHA256 token containing claims (<code>userId</code>, <code>role</code>, <code>sub</code>, <code>exp</code>).</li>
+            <li>Client includes token in <code>Authorization: Bearer &lt;token&gt;</code> header.</li>
+            <li>Zero server-side session memory overhead (scales horizontally).</li>
+          </ul>
+        </div>
+        <div class="spec-box">
+          <h4>Privilege Enforcement</h4>
+          <ul>
+            <li>Public registration strictly assigns <code>ROLE_CUSTOMER</code>.</li>
+            <li>Catalog mutations, category creation, order status updates, and dashboard analytics require <code>ROLE_ADMIN</code>.</li>
+            <li>Customer data isolation: Non-admin users can never access or modify another customer's orders or cart.</li>
+            <li>JSON error responses: Unauthenticated requests receive 401; unauthorized requests receive 403.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 7: Live Demonstration -->
+    <div class="slide-card" id="slide-7">
+      <div class="slide-header">
+        <div>
+          <span class="slide-category">Live Software Demonstration</span>
+          <h2 class="slide-title">Ready for Live Viva Evaluation</h2>
+        </div>
+      </div>
+      <div class="slide-body" style="text-align: center; display: flex; flex-direction: column; justify-content: center;">
+        <span style="font-size: 3.5rem; margin-bottom: 10px;">🚀</span>
+        <h3 style="font-size: 1.5rem; margin-bottom: 12px;">Application is Running Live on Port 8080</h3>
+        <p style="color: var(--text-muted); max-width: 650px; margin: 0 auto 24px;">
+          All 36 automated unit and integration tests have passed. The catalog contains pre-seeded gourmet items, categories, customer workflows, and the admin fulfillment portal.
+        </p>
+        <div style="display: flex; gap: 16px; justify-content: center;">
+          <a href="/index.html" class="btn btn-primary btn-lg" target="_blank">Open Customer Storefront ↗</a>
+          <a href="/admin-login.html" class="btn btn-secondary btn-lg" target="_blank">Open Admin Portal ↗</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Navigation Bar -->
+  <div class="slide-footer-bar">
+    <div style="font-size: 0.9rem; color: #adb5bd;">
+      Slide <span id="current-slide-num">1</span> of <span id="total-slides-num">7</span> — <b>GourmetBite Viva Defense</b>
+    </div>
+    <div class="slide-nav-btns">
+      <button onclick="prevSlide()" id="prev-btn" class="btn btn-secondary btn-sm" disabled>◀ Previous</button>
+      <button onclick="nextSlide()" id="next-btn" class="btn btn-primary btn-sm">Next ▶</button>
+      <a href="/index.html" class="btn btn-outline btn-sm" style="margin-left: 12px;">Exit to Storefront</a>
+    </div>
+  </div>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 7;
+
+    function showSlide(num) {
+      document.querySelectorAll('.slide-card').forEach(s => s.classList.remove('active'));
+      const active = document.getElementById(`slide-${num}`);
+      if (active) active.classList.add('active');
+
+      document.getElementById('current-slide-num').textContent = num;
+      document.getElementById('prev-btn').disabled = num === 1;
+      document.getElementById('next-btn').disabled = num === totalSlides;
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        currentSlide++;
+        showSlide(currentSlide);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) {
+        currentSlide--;
+        showSlide(currentSlide);
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+      if (e.key === 'ArrowLeft') prevSlide();
+    });
+
+    document.getElementById('total-slides-num').textContent = totalSlides;
+  </script>
+</body>
+</html>

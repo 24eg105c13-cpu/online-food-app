@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Food Items — GourmetBite Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body style="background: #f4efe6;">
+
+  <!-- Admin Header -->
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="/admin-dashboard.html" class="logo">
+        🛡️ <span>Gourmet<b>Bite Admin</b></span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="/admin-dashboard.html" class="nav-link">Dashboard</a></li>
+        <li><a href="/manage-food.html" class="nav-link active">Foods</a></li>
+        <li><a href="/manage-categories.html" class="nav-link">Categories</a></li>
+        <li><a href="/manage-orders.html" class="nav-link">Orders</a></li>
+        <li><a href="/manage-customers.html" class="nav-link">Customers</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="/index.html" class="btn btn-secondary btn-sm" target="_blank">Storefront ↗</a>
+        <button onclick="handleLogout()" class="btn btn-outline btn-sm">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="margin-top: 36px; margin-bottom: 80px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;">
+      <div>
+        <span style="color: var(--accent); font-weight: 700; text-transform: uppercase; font-size: 0.85rem;">Catalog Management</span>
+        <h1 style="font-size: 2.2rem; font-weight: 800;">Manage Food Menu Items</h1>
+      </div>
+      <button onclick="openCreateModal()" class="btn btn-primary">+ Add New Dish</button>
+    </div>
+
+    <!-- Filters -->
+    <div class="card-box" style="padding: 16px 20px; margin-bottom: 24px;">
+      <div style="display: grid; grid-template-columns: 2fr 1.2fr auto; gap: 14px; align-items: center;">
+        <input type="text" id="food-search" class="form-control" placeholder="Search dish name...">
+        <select id="food-category-filter" class="form-control">
+          <option value="">All Categories</option>
+        </select>
+        <button onclick="loadFoods()" class="btn btn-secondary">Filter</button>
+      </div>
+    </div>
+
+    <!-- Foods Table -->
+    <div class="card-box">
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Availability</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="foods-tbody">
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Loading dishes...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Create/Edit Modal -->
+  <div id="food-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 id="modal-title" style="font-size: 1.3rem; font-weight: 800;">Add Food Item</h3>
+        <button onclick="closeModal()" style="background: none; border: none; font-size: 1.4rem; cursor: pointer;">✕</button>
+      </div>
+
+      <form id="food-form">
+        <input type="hidden" id="food-id">
+
+        <div class="form-group">
+          <label class="form-label" for="food-name">Dish Name *</label>
+          <input type="text" id="food-name" class="form-control" required placeholder="e.g. Truffle Angus Burger">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="food-category">Category *</label>
+          <select id="food-category" class="form-control" required>
+            <!-- Categories loaded via JS -->
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="food-price">Price ($) *</label>
+          <input type="number" id="food-price" class="form-control" step="0.01" min="0.01" required placeholder="12.99">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="food-image">Image URL</label>
+          <input type="url" id="food-image" class="form-control" placeholder="https://images.unsplash.com/...">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="food-desc">Description</label>
+          <textarea id="food-desc" class="form-control" rows="3" placeholder="Ingredients, taste profile, and preparation style"></textarea>
+        </div>
+
+        <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+          <input type="checkbox" id="food-available" checked style="accent-color: var(--accent); width: 18px; height: 18px;">
+          <label for="food-available" style="font-weight: 600; cursor: pointer;">Available for Customer Ordering</label>
+        </div>
+
+        <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+          <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancel</button>
+          <button type="submit" id="save-food-btn" class="btn btn-primary">Save Dish</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container footer-bottom">
+      &copy; 2026 GourmetBite Online Food Ordering System — Administration Portal.
+    </div>
+  </footer>
+
+  <script src="/js/api.js"></script>
+  <script>
+    if (!Storage.isAuthenticated() || !Storage.isAdmin()) {
+        window.location.href = '/admin-login.html';
+    }
+
+    let categoriesList = [];
+
+    async function loadCategories() {
+        try {
+            const res = await apiRequest('/categories');
+            categoriesList = res?.data || [];
+            
+            const filterSelect = document.getElementById('food-category-filter');
+            const formSelect = document.getElementById('food-category');
+
+            filterSelect.innerHTML = '<option value="">All Categories</option>';
+            formSelect.innerHTML = '';
+
+            categoriesList.forEach(c => {
+                const opt1 = document.createElement('option');
+                opt1.value = c.id;
+                opt1.textContent = c.name;
+                filterSelect.appendChild(opt1);
+
+                const opt2 = document.createElement('option');
+                opt2.value = c.id;
+                opt2.textContent = c.name;
+                formSelect.appendChild(opt2);
+            });
+        } catch (e) {
+            console.error('Failed to load categories', e);
+        }
+    }
+
+    async function loadFoods() {
+        const tbody = document.getElementById('foods-tbody');
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Loading dishes...</td></tr>';
+
+        const search = document.getElementById('food-search').value.trim();
+        const cat = document.getElementById('food-category-filter').value;
+
+        let url = '/foods?size=100';
+        if (search) url += `&search=${encodeURIComponent(search)}`;
+        if (cat) url += `&categoryId=${encodeURIComponent(cat)}`;
+
+        try {
+            const res = await apiRequest(url);
+            const foods = res?.data?.content || [];
+
+            if (foods.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;">No food items found.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = foods.map(f => `
+              <tr>
+                <td style="width: 70px;">
+                  <img src="${escapeHtml(f.imageUrl || '')}" alt="${escapeHtml(f.name)}" 
+                       style="width: 56px; height: 56px; object-fit: cover; border-radius: var(--radius-sm);" onerror="handleImageError(this)">
+                </td>
+                <td>
+                  <strong>${escapeHtml(f.name)}</strong>
+                  <div style="font-size: 0.8rem; color: var(--text-muted); max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    ${escapeHtml(f.description || '')}
+                  </div>
+                </td>
+                <td><span class="cat-pill" style="padding: 4px 10px; font-size: 0.78rem;">${escapeHtml(f.categoryName || 'General')}</span></td>
+                <td style="font-weight: 700;">${formatCurrency(f.price)}</td>
+                <td>
+                  <span class="status-badge ${f.available ? 'status-CONFIRMED' : 'status-CANCELLED'}">
+                    ${f.available ? 'Available' : 'Unavailable'}
+                  </span>
+                </td>
+                <td>
+                  <div style="display: flex; gap: 8px;">
+                    <button onclick='openEditModal(${JSON.stringify(f).replace(/'/g, "&#39;")})' class="btn btn-secondary btn-sm">Edit</button>
+                    <button onclick="deleteFood('${f.id}')" class="btn btn-danger btn-sm">Delete</button>
+                  </div>
+                </td>
+              </tr>
+            `).join('');
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger); padding: 40px;">Failed to load foods: ${escapeHtml(e.message)}</td></tr>`;
+        }
+    }
+
+    function openCreateModal() {
+        document.getElementById('modal-title').textContent = 'Add New Dish';
+        document.getElementById('food-id').value = '';
+        document.getElementById('food-name').value = '';
+        document.getElementById('food-price').value = '';
+        document.getElementById('food-image').value = '';
+        document.getElementById('food-desc').value = '';
+        document.getElementById('food-available').checked = true;
+
+        document.getElementById('food-modal').classList.add('open');
+    }
+
+    function openEditModal(f) {
+        document.getElementById('modal-title').textContent = 'Edit Food Item';
+        document.getElementById('food-id').value = f.id;
+        document.getElementById('food-name').value = f.name;
+        document.getElementById('food-category').value = f.categoryId;
+        document.getElementById('food-price').value = f.price;
+        document.getElementById('food-image').value = f.imageUrl || '';
+        document.getElementById('food-desc').value = f.description || '';
+        document.getElementById('food-available').checked = f.available;
+
+        document.getElementById('food-modal').classList.add('open');
+    }
+
+    function closeModal() {
+        document.getElementById('food-modal').classList.remove('open');
+    }
+
+    document.getElementById('food-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('food-id').value;
+        const name = document.getElementById('food-name').value.trim();
+        const categoryId = document.getElementById('food-category').value;
+        const price = parseFloat(document.getElementById('food-price').value);
+        const imageUrl = document.getElementById('food-image').value.trim();
+        const description = document.getElementById('food-desc').value.trim();
+        const available = document.getElementById('food-available').checked;
+
+        const payload = { name, categoryId, price, imageUrl, description, available };
+        const saveBtn = document.getElementById('save-food-btn');
+
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+
+        try {
+            if (id) {
+                await apiRequest(`/foods/${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(payload)
+                });
+                showToast('Dish updated successfully!', 'success');
+            } else {
+                await apiRequest('/foods', {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                showToast('Dish created successfully!', 'success');
+            }
+            closeModal();
+            loadFoods();
+        } catch (err) {
+            showToast(err.message, 'error');
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save Dish';
+        }
+    });
+
+    async function deleteFood(id) {
+        if (!confirm('Are you sure you want to permanently delete this food item?')) return;
+        try {
+            await apiRequest(`/foods/${id}`, { method: 'DELETE' });
+            showToast('Food item deleted.', 'info');
+            loadFoods();
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        await loadCategories();
+        loadFoods();
+    });
+  </script>
+</body>
+</html>

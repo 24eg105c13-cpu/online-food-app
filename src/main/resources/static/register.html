@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register — GourmetBite Food Ordering</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Site Header -->
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="/index.html" class="logo">
+        🍽️ <span>Gourmet<b>Bite</b></span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="/index.html" class="nav-link">Home</a></li>
+        <li><a href="/menu.html" class="nav-link">Menu</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="/cart.html" class="cart-btn" aria-label="View Shopping Cart">
+          🛒
+          <span id="header-cart-badge" class="cart-badge" style="display: none;">0</span>
+        </a>
+        <div id="header-auth-actions"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Register Form Container -->
+  <main class="container" style="max-width: 520px; margin: 40px auto 80px;">
+    <div class="card-box">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <span style="font-size: 2.2rem;">🍔</span>
+        <h2 style="font-size: 1.7rem; font-weight: 800; margin-top: 6px;">Create Your Account</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Join thousands of food lovers enjoying fast fresh deliveries</p>
+      </div>
+
+      <div id="alert-box" style="display: none; padding: 12px; border-radius: var(--radius-sm); margin-bottom: 18px; font-size: 0.9rem;"></div>
+
+      <form id="register-form">
+        <div class="form-group">
+          <label class="form-label" for="name">Full Name *</label>
+          <input type="text" id="name" class="form-control" placeholder="John Doe" required minlength="2">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">Email Address *</label>
+          <input type="email" id="email" class="form-control" placeholder="john@example.com" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password (Minimum 6 characters) *</label>
+          <input type="password" id="password" class="form-control" placeholder="••••••••" required minlength="6">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="phone">Phone Number</label>
+          <input type="tel" id="phone" class="form-control" placeholder="+1 (555) 019-2834">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="address">Default Delivery Address</label>
+          <textarea id="address" class="form-control" rows="2" placeholder="Street, Apartment / Suite, City, ZIP"></textarea>
+        </div>
+
+        <button type="submit" id="submit-btn" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 10px;">
+          Create Customer Account
+        </button>
+      </form>
+
+      <div style="text-align: center; margin-top: 24px; font-size: 0.9rem; color: var(--text-muted);">
+        Already have an account? <a href="/login.html" style="color: var(--accent); font-weight: 700;">Log In</a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-bottom">
+      &copy; 2026 GourmetBite Online Food Ordering System.
+    </div>
+  </footer>
+
+  <script src="/js/api.js"></script>
+  <script>
+    if (Storage.isAuthenticated()) {
+        window.location.href = Storage.isAdmin() ? '/admin-dashboard.html' : '/menu.html';
+    }
+
+    const registerForm = document.getElementById('register-form');
+    const alertBox = document.getElementById('alert-box');
+    const submitBtn = document.getElementById('submit-btn');
+
+    registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        alertBox.style.display = 'none';
+
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const phone = document.getElementById('phone').value.trim();
+        const address = document.getElementById('address').value.trim();
+
+        if (password.length < 6) {
+            alertBox.style.display = 'block';
+            alertBox.style.backgroundColor = 'var(--danger-bg)';
+            alertBox.style.color = 'var(--danger)';
+            alertBox.textContent = 'Password must be at least 6 characters.';
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating account...';
+
+        try {
+            const res = await apiRequest('/auth/register', {
+                method: 'POST',
+                body: JSON.stringify({ name, email, password, phone, address })
+            });
+
+            if (res.success && res.data) {
+                Storage.setAuth(res.data.token, res.data);
+                showToast('Account created successfully! Welcome, ' + res.data.name, 'success');
+                setTimeout(() => {
+                    window.location.href = '/menu.html';
+                }, 800);
+            }
+        } catch (err) {
+            alertBox.style.display = 'block';
+            alertBox.style.backgroundColor = 'var(--danger-bg)';
+            alertBox.style.color = 'var(--danger)';
+            alertBox.style.border = '1px solid var(--danger)';
+            alertBox.textContent = err.message || 'Registration failed. Email may already be in use.';
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Create Customer Account';
+        }
+    });
+  </script>
+</body>
+</html>

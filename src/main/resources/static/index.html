@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GourmetBite — Online Food Ordering System</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Site Header -->
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="/index.html" class="logo">
+        🍽️ <span>Gourmet<b>Bite</b></span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="/index.html" class="nav-link active">Home</a></li>
+        <li><a href="/menu.html" class="nav-link">Menu</a></li>
+        <li><a href="/my-orders.html" class="nav-link">My Orders</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="/cart.html" class="cart-btn" aria-label="View Shopping Cart">
+          🛒
+          <span id="header-cart-badge" class="cart-badge" style="display: none;">0</span>
+        </a>
+        <div id="header-auth-actions"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container hero-content">
+      <div>
+        <span class="hero-tag">🔥 Fresh & Fast Delivery</span>
+        <h1>Delicious Food, <br>Delivered <span>Hot & Fresh</span></h1>
+        <p>Explore chef-crafted artisan burgers, wood-fired sourdough pizzas, fresh Asian bowls, and decadent desserts delivered straight to your doorstep.</p>
+        <div class="hero-actions">
+          <a href="/menu.html" class="btn btn-primary btn-lg">Browse Full Menu ➔</a>
+          <a href="#featured" class="btn btn-secondary btn-lg">View Specials</a>
+        </div>
+      </div>
+      <div class="hero-img-wrapper">
+        <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=700&q=80" 
+             alt="Signature Gourmet Meal" class="hero-img" onerror="handleImageError(this)">
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <main class="container">
+
+    <!-- Search & Filter Controls -->
+    <div class="search-wrapper">
+      <span style="font-size: 1.2rem; padding: 8px 4px 0 8px;">🔍</span>
+      <input type="text" id="home-search" class="search-input" placeholder="Search mouth-watering dishes (e.g. Burger, Truffle, Pizza, Ramen)...">
+      <button id="search-btn" class="btn btn-primary">Search</button>
+    </div>
+
+    <!-- Category Pills -->
+    <div id="category-pills" class="category-pills">
+      <button class="cat-pill active" data-category="">All Categories</button>
+      <!-- Categories dynamically rendered -->
+    </div>
+
+    <!-- Featured Section -->
+    <section id="featured" style="margin-top: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px;">
+        <div>
+          <span style="color: var(--accent); font-weight: 700; text-transform: uppercase; font-size: 0.82rem;">Chef's Recommendations</span>
+          <h2 style="font-size: 1.8rem; font-weight: 800;">Popular & Featured Dishes</h2>
+        </div>
+        <a href="/menu.html" style="color: var(--accent); font-weight: 700; font-size: 0.95rem;">See All Menu ➔</a>
+      </div>
+
+      <!-- Food Grid -->
+      <div id="food-grid" class="food-grid">
+        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
+          Loading scrumptious dishes...
+        </div>
+      </div>
+    </section>
+
+    <!-- Why Choose Us -->
+    <section style="margin: 60px 0 80px;">
+      <div style="text-align: center; margin-bottom: 40px;">
+        <span style="color: var(--accent); font-weight: 700; text-transform: uppercase; font-size: 0.82rem;">Our Promise</span>
+        <h2 style="font-size: 2rem; font-weight: 800;">Why Order With GourmetBite?</h2>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px;">
+        <div class="card-box" style="text-align: center;">
+          <div style="font-size: 2.5rem; margin-bottom: 12px;">⚡</div>
+          <h3 style="margin-bottom: 8px;">Lightning Fast Delivery</h3>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">Insulated thermal packaging ensures your meals arrive piping hot in 30 minutes.</p>
+        </div>
+        <div class="card-box" style="text-align: center;">
+          <div style="font-size: 2.5rem; margin-bottom: 12px;">🥗</div>
+          <h3 style="margin-bottom: 8px;">Fresh Natural Ingredients</h3>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">100% farm-fresh vegetables and ethically sourced meats crafted with passion.</p>
+        </div>
+        <div class="card-box" style="text-align: center;">
+          <div style="font-size: 2.5rem; margin-bottom: 12px;">💵</div>
+          <h3 style="margin-bottom: 8px;">Cash On Delivery</h3>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">Pay comfortably with cash directly upon receiving your order at your doorstep.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <div class="logo" style="margin-bottom: 14px;">
+            🍽️ <span>Gourmet<b>Bite</b></span>
+          </div>
+          <p style="font-size: 0.88rem; line-height: 1.6; max-width: 320px;">
+            A complete Full-Stack Online Food Ordering System powered by Spring Boot, Spring Security, JWT, and MongoDB.
+          </p>
+        </div>
+        <div class="footer-col">
+          <h4>Explore</h4>
+          <ul class="footer-links">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/menu.html">Our Menu</a></li>
+            <li><a href="/cart.html">View Cart</a></li>
+            <li><a href="/my-orders.html">Track Order</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Customer Care</h4>
+          <ul class="footer-links">
+            <li><a href="/login.html">Login</a></li>
+            <li><a href="/register.html">Sign Up</a></li>
+            <li><a href="/profile.html">My Profile</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Administration</h4>
+          <ul class="footer-links">
+            <li><a href="/admin-login.html">Admin Portal</a></li>
+            <li><a href="/admin-dashboard.html">Admin Dashboard</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        &copy; 2026 GourmetBite Online Food Ordering System. Final-Year Academic Project & Live Demonstration.
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/api.js"></script>
+  <script>
+    let selectedCategory = '';
+    let searchQuery = '';
+
+    async function loadCategories() {
+        const container = document.getElementById('category-pills');
+        try {
+            const res = await apiRequest('/categories?activeOnly=true');
+            if (res.success && res.data) {
+                res.data.forEach(cat => {
+                    const btn = document.createElement('button');
+                    btn.className = 'cat-pill';
+                    btn.dataset.category = cat.id;
+                    btn.textContent = cat.name;
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        selectedCategory = cat.id;
+                        loadFoods();
+                    });
+                    container.appendChild(btn);
+                });
+            }
+        } catch (e) {
+            console.error('Failed to load categories', e);
+        }
+    }
+
+    async function loadFoods() {
+        const grid = document.getElementById('food-grid');
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">Loading dishes...</div>';
+
+        try {
+            let url = `/foods?available=true&size=8&page=0`;
+            if (selectedCategory) url += `&categoryId=${encodeURIComponent(selectedCategory)}`;
+            if (searchQuery) url += `&search=${encodeURIComponent(searchQuery)}`;
+
+            const res = await apiRequest(url);
+            const foods = res?.data?.content || [];
+
+            if (foods.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px;">
+                        <p style="font-size: 1.1rem; color: var(--text-muted);">No food items found matching your criteria.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = '';
+            foods.forEach(food => {
+                const card = document.createElement('div');
+                card.className = 'food-card';
+                card.innerHTML = `
+                    <div class="food-img-container">
+                        <img src="${escapeHtml(food.imageUrl || '')}" alt="${escapeHtml(food.name)}" onerror="handleImageError(this)">
+                        <span class="food-badge ${food.available ? 'available' : 'unavailable'}">
+                            ${food.available ? '● Available' : '● Sold Out'}
+                        </span>
+                    </div>
+                    <div class="food-card-body">
+                        <span class="food-category-tag">${escapeHtml(food.categoryName || 'General')}</span>
+                        <h3 class="food-title">${escapeHtml(food.name)}</h3>
+                        <p class="food-desc">${escapeHtml(food.description || '')}</p>
+                        <div class="food-card-footer">
+                            <span class="food-price">${formatCurrency(food.price)}</span>
+                            <div style="display: flex; gap: 8px;">
+                                <a href="/food-details.html?id=${food.id}" class="btn btn-secondary btn-sm">Details</a>
+                                <button onclick="quickAddToCart('${food.id}')" class="btn btn-primary btn-sm" ${!food.available ? 'disabled' : ''}>
+                                    + Add
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        } catch (e) {
+            grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--danger);">Error loading foods: ${escapeHtml(e.message)}</div>`;
+        }
+    }
+
+    async function quickAddToCart(foodId) {
+        if (!Storage.isAuthenticated()) {
+            showToast('Please log in to add items to your cart.', 'info');
+            setTimeout(() => window.location.href = '/login.html', 1000);
+            return;
+        }
+
+        if (Storage.isAdmin()) {
+            showToast('Administrators cannot place customer orders.', 'error');
+            return;
+        }
+
+        try {
+            await apiRequest('/cart/add', {
+                method: 'POST',
+                body: JSON.stringify({ foodItemId: foodId, quantity: 1 })
+            });
+            showToast('Added to cart!', 'success');
+            syncHeader();
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    }
+
+    document.getElementById('search-btn').addEventListener('click', () => {
+        searchQuery = document.getElementById('home-search').value.trim();
+        loadFoods();
+    });
+
+    document.getElementById('home-search').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            searchQuery = e.target.value.trim();
+            loadFoods();
+        }
+    });
+
+    document.querySelector('.cat-pill[data-category=""]').addEventListener('click', (e) => {
+        document.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        selectedCategory = '';
+        loadFoods();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadCategories();
+        loadFoods();
+    });
+  </script>
+</body>
+</html>

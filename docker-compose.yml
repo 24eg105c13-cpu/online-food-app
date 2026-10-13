@@ -1,0 +1,30 @@
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: food_ordering_mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=food_ordering_db
+
+  app:
+    build: .
+    container_name: food_ordering_app
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongodb
+    environment:
+      - PORT=8080
+      - MONGODB_URI=mongodb://mongodb:27017/food_ordering_db
+      - JWT_SECRET=404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      - JWT_EXPIRATION_MS=86400000
+      - ADMIN_EMAIL=admin@foodordering.com
+      - ADMIN_PASSWORD=AdminPassword123!
+
+volumes:
+  mongo_data:

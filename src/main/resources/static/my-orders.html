@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Orders — GourmetBite</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Site Header -->
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="/index.html" class="logo">
+        🍽️ <span>Gourmet<b>Bite</b></span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="/index.html" class="nav-link">Home</a></li>
+        <li><a href="/menu.html" class="nav-link">Menu</a></li>
+        <li><a href="/my-orders.html" class="nav-link active">My Orders</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="/cart.html" class="cart-btn" aria-label="View Shopping Cart">
+          🛒
+          <span id="header-cart-badge" class="cart-badge" style="display: none;">0</span>
+        </a>
+        <div id="header-auth-actions"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="max-width: 900px; margin: 40px auto 80px;">
+    <div style="margin-bottom: 24px;">
+      <span style="color: var(--accent); font-weight: 700; text-transform: uppercase; font-size: 0.85rem;">Order History</span>
+      <h1 style="font-size: 2.2rem; font-weight: 800;">My Food Orders</h1>
+    </div>
+
+    <div id="orders-container">
+      <div style="text-align: center; padding: 60px; color: var(--text-muted);">
+        Loading orders...
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-bottom">
+      &copy; 2026 GourmetBite Online Food Ordering System.
+    </div>
+  </footer>
+
+  <script src="/js/api.js"></script>
+  <script>
+    if (!Storage.isAuthenticated()) {
+        window.location.href = '/login.html';
+    }
+
+    async function loadMyOrders() {
+        const container = document.getElementById('orders-container');
+
+        try {
+            const res = await apiRequest('/orders');
+            const orders = res?.data || [];
+
+            if (orders.length === 0) {
+                container.innerHTML = `
+                  <div class="card-box" style="text-align: center; padding: 60px;">
+                    <span style="font-size: 3.5rem;">📦</span>
+                    <h2 style="margin: 16px 0 8px;">No Orders Yet</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 24px;">You haven't placed any food orders so far.</p>
+                    <a href="/menu.html" class="btn btn-primary btn-lg">Browse Delicious Menu</a>
+                  </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = orders.map(o => {
+                const dateStr = o.orderDate ? new Date(o.orderDate).toLocaleDateString('en-US', {
+                    month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                }) : 'N/A';
+
+                const itemsSummary = o.items.map(i => `${i.quantity}x ${escapeHtml(i.foodName)}`).join(', ');
+
+                return `
+                  <div class="card-box" style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 14px;">
+                      <div>
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">Order ID: <b>#${escapeHtml(o.id.substring(0, 8))}</b></span>
+                        <span style="font-size: 0.85rem; color: var(--text-muted); margin-left: 12px;">📅 ${dateStr}</span>
+                      </div>
+                      <span class="status-badge status-${o.orderStatus}">${o.orderStatus}</span>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <div style="flex: 1; padding-right: 20px;">
+                        <p style="font-size: 0.95rem; font-weight: 600; margin-bottom: 6px;">${itemsSummary}</p>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">Address: ${escapeHtml(o.deliveryAddress)}</p>
+                        <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Payment: Cash on Delivery (${o.paymentStatus})</span>
+                      </div>
+                      <div style="text-align: right;">
+                        <div style="font-size: 1.4rem; font-weight: 800; color: var(--accent); margin-bottom: 10px;">${formatCurrency(o.totalAmount)}</div>
+                        <a href="/order-tracking.html?id=${o.id}" class="btn btn-primary btn-sm">
+                          📍 Track Order
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                `;
+            }).join('');
+
+        } catch (e) {
+            container.innerHTML = `<div class="card-box" style="text-align: center; color: var(--danger); padding: 40px;">Error loading orders: ${escapeHtml(e.message)}</div>`;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadMyOrders);
+  </script>
+</body>
+</html>

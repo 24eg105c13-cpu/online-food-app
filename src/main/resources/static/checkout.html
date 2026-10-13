@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout — GourmetBite</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Site Header -->
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="/index.html" class="logo">
+        🍽️ <span>Gourmet<b>Bite</b></span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="/index.html" class="nav-link">Home</a></li>
+        <li><a href="/menu.html" class="nav-link">Menu</a></li>
+        <li><a href="/my-orders.html" class="nav-link">My Orders</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="/cart.html" class="cart-btn" aria-label="View Shopping Cart">
+          🛒
+          <span id="header-cart-badge" class="cart-badge" style="display: none;">0</span>
+        </a>
+        <div id="header-auth-actions"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="max-width: 960px; margin: 40px auto 80px;">
+    <div style="margin-bottom: 24px;">
+      <span style="color: var(--accent); font-weight: 700; text-transform: uppercase; font-size: 0.85rem;">Step 2 of 2</span>
+      <h1 style="font-size: 2.2rem; font-weight: 800;">Complete Your Order</h1>
+    </div>
+
+    <div id="checkout-container" style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 28px; align-items: start;">
+      <div class="card-box">
+        <h3 style="font-size: 1.25rem; margin-bottom: 18px;">📍 Delivery Details</h3>
+        
+        <form id="checkout-form">
+          <div class="form-group">
+            <label class="form-label" for="recipient-name">Recipient Name</label>
+            <input type="text" id="recipient-name" class="form-control" readonly style="background-color: #eee;">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="recipient-phone">Contact Phone</label>
+            <input type="text" id="recipient-phone" class="form-control" readonly style="background-color: #eee;">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="delivery-address">Delivery Address *</label>
+            <textarea id="delivery-address" class="form-control" rows="3" placeholder="Enter complete delivery street address, building/apt, landmarks, and city" required></textarea>
+            <small style="color: var(--text-muted); font-size: 0.8rem;">Please provide an accurate location for our fast delivery rider.</small>
+          </div>
+
+          <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--border-color);">
+            <h3 style="font-size: 1.25rem; margin-bottom: 14px;">💳 Payment Method</h3>
+            
+            <div style="background: var(--bg-secondary); border: 2px solid var(--accent); border-radius: var(--radius-sm); padding: 14px 18px; display: flex; align-items: center; gap: 14px;">
+              <input type="radio" id="cod" name="paymentMethod" value="CASH_ON_DELIVERY" checked style="accent-color: var(--accent); width: 18px; height: 18px;">
+              <div>
+                <label for="cod" style="font-weight: 700; cursor: pointer; display: block;">💵 Cash on Delivery (COD)</label>
+                <small style="color: var(--text-muted);">Pay in cash directly to our rider upon receiving and inspecting your food order.</small>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" id="place-order-btn" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 24px;">
+            Confirm & Place Order ➔
+          </button>
+        </form>
+      </div>
+
+      <!-- Order Summary Card -->
+      <div class="card-box" id="summary-card">
+        <h3 style="font-size: 1.25rem; margin-bottom: 16px;">Order Summary</h3>
+        <div id="checkout-items" style="max-height: 280px; overflow-y: auto; margin-bottom: 16px;">
+          <!-- items loaded via js -->
+        </div>
+
+        <div style="border-top: 1px solid var(--border-color); padding-top: 14px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: var(--text-muted);">
+            <span>Subtotal</span>
+            <span id="summary-subtotal">$0.00</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: var(--text-muted);">
+            <span>Delivery Fee</span>
+            <span style="color: var(--success); font-weight: 700;">FREE</span>
+          </div>
+          <div style="border-top: 2px dashed var(--border-color); margin: 12px 0; padding-top: 12px; display: flex; justify-content: space-between; font-size: 1.25rem; font-weight: 800;">
+            <span>Total Payable</span>
+            <span id="summary-total" style="color: var(--accent);">$0.00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-bottom">
+      &copy; 2026 GourmetBite Online Food Ordering System.
+    </div>
+  </footer>
+
+  <script src="/js/api.js"></script>
+  <script>
+    if (!Storage.isAuthenticated() || Storage.isAdmin()) {
+        window.location.href = Storage.isAdmin() ? '/admin-dashboard.html' : '/login.html';
+    }
+
+    async function initCheckout() {
+        try {
+            // Load user profile
+            const profileRes = await apiRequest('/users/profile');
+            if (profileRes.success && profileRes.data) {
+                const u = profileRes.data;
+                document.getElementById('recipient-name').value = u.name || '';
+                document.getElementById('recipient-phone').value = u.phone || 'Not provided';
+                if (u.address) {
+                    document.getElementById('delivery-address').value = u.address;
+                }
+            }
+
+            // Load Cart
+            const cartRes = await apiRequest('/cart');
+            const cart = cartRes?.data;
+            const items = cart?.items || [];
+
+            if (items.length === 0) {
+                showToast('Your cart is empty. Please add food before checking out.', 'warning');
+                setTimeout(() => window.location.href = '/menu.html', 1200);
+                return;
+            }
+
+            const itemsContainer = document.getElementById('checkout-items');
+            itemsContainer.innerHTML = items.map(i => `
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 0.92rem;">
+                <div>
+                  <strong>${escapeHtml(i.foodName)}</strong>
+                  <span style="color: var(--text-muted); display: block; font-size: 0.8rem;">Qty: ${i.quantity} × ${formatCurrency(i.unitPrice)}</span>
+                </div>
+                <span style="font-weight: 700;">${formatCurrency(i.lineTotal)}</span>
+              </div>
+            `).join('');
+
+            document.getElementById('summary-subtotal').textContent = formatCurrency(cart.totalAmount);
+            document.getElementById('summary-total').textContent = formatCurrency(cart.totalAmount);
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    }
+
+    document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const address = document.getElementById('delivery-address').value.trim();
+
+        if (!address) {
+            showToast('Please enter a delivery address.', 'error');
+            return;
+        }
+
+        const placeBtn = document.getElementById('place-order-btn');
+        placeBtn.disabled = true;
+        placeBtn.textContent = 'Placing Order...';
+
+        try {
+            const res = await apiRequest('/orders', {
+                method: 'POST',
+                body: JSON.stringify({
+                    deliveryAddress: address,
+                    paymentMethod: 'CASH_ON_DELIVERY'
+                })
+            });
+
+            if (res.success && res.data) {
+                showToast('Order placed successfully!', 'success');
+                setTimeout(() => {
+                    window.location.href = `/order-confirmation.html?id=${res.data.id}`;
+                }, 800);
+            }
+        } catch (err) {
+            showToast(err.message, 'error');
+            placeBtn.disabled = false;
+            placeBtn.textContent = 'Confirm & Place Order ➔';
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', initCheckout);
+  </script>
+</body>
+</html>
